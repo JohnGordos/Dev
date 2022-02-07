@@ -26,6 +26,9 @@ Integer getColumnSize()
 -LATER-
 Decimal calcDeterminant()
 
+simplex alg
+-https://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/LinearProgramming.java
+add constructor for matrix/vector to pre-build.  ie just specifiy dim?
 
 */
 public with sharing class Vector implements IVector, Comparable{
@@ -38,8 +41,12 @@ public with sharing class Vector implements IVector, Comparable{
         this.vector = vector;
     }
     public void replaceElementAtPosition(Integer position, Decimal value){
-        if(vector.size() >= position){
+        if(vector.size() > position){
             vector.set(position, value);
+        }else if(vector.size() == position){
+            //[a]   [a, b]   [a, b, c]
+            //pos = 1, pos = 1, 2... 
+            vector.add(value);
         }else{
             populateZeroUpToPosition(position, value);
             vector.add(value);
@@ -47,8 +54,10 @@ public with sharing class Vector implements IVector, Comparable{
         System.debug('vector '+vector);
     }
     public void populateElementAtPosition(Integer position, Decimal value){
-        if(vector.size() >= position){
+        if(vector.size() > position){
             vector.add(position, value);
+        }else if(vector.size() == position){
+            vector.add(value);
         }else{
             populateZeroUpToPosition(position, value);
             vector.add(value);
@@ -63,7 +72,7 @@ public with sharing class Vector implements IVector, Comparable{
         try{
             resultElement = vector[position];
         }catch(ListException error){
-            resultElement = 0; //I don't care
+            resultElement = null;
         }
         return resultElement;
     }

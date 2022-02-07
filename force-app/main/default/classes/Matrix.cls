@@ -15,8 +15,7 @@ public with sharing class Matrix{
             if(initialVectorSize == matrix.get(columnCoord).size()){
                 this.matrix.put(columnCoord, new Vector(matrix.get(columnCoord)));
             }else{
-                System.debug('you dummy, don\'t register vectors of different sizes to the same matrix');
-                throw new MatrixSizeException();
+                throw new MatrixSizeException('Registered size '+initialVectorSize+' attempted to add vector of size '+matrix.get(columnCoord).size()+'to column coord '+columnCoord);
             }
         }
     }
@@ -26,12 +25,10 @@ public with sharing class Matrix{
             if(initialVectorSize == matrix.get(columnCoord).getSize()){
                 this.matrix.put(columnCoord, matrix.get(columnCoord));
             }else{
-                System.debug('you dummy, don\'t register vectors of different sizes to the same matrix');
-                throw new MatrixSizeException();
+                throw new MatrixSizeException('Registered size '+initialVectorSize+' attempted to add vector of size '+matrix.get(columnCoord).getSize()+'to column coord '+columnCoord);
             }
         }
     }
-    
     public Set<Integer> getColumnCoordinates(){
         return matrix.keySet();
     }
@@ -46,63 +43,36 @@ public with sharing class Matrix{
         if(matrix.containsKey(columnCoord) && isSubjectVectorSizeValid(subjectVector)){
             matrix.put(columnCoord, subjectVector);
         }else{
-            throw new MatrixSizeException();
+            throw new MatrixSizeException('Registered size '+defaultVectorSize+' attempted to add vector of size '+subjectVector.getSize()+'to column coord '+columnCoord);
         }
     }
     public Decimal getElementAtCoordinates(Integer columnCoord, Integer rowCoord){
         Decimal result;
         if(matrix.containsKey(columnCoord)){
-            result = matrix.get(columnCoord).getElementAtPosition(rowCoord); //this is stupid b/c 0 returned in vector but null in matrix
+            result = matrix.get(columnCoord).getElementAtPosition(rowCoord);
         }
         return result;
     }
-    //TRANSPOSE matrix
-    /*
-    i did not define col and row vector so conception harder
-    tests
-    transpose of a transpose = og matrix
-    k * transpose A = (t * A) transpose
-
-    element @ col coord 1 does not change
-    element @ col coord n does not change
-    [a, b] > [a, c]
-    [c, d] > [b, d]
-
-    matrix.keySet().size becomes size of new vectors
-    you can't concentrate, brute force transpose on 3 diff types of matricies and find pattern jenus
-
-    Try to transpose a List<List<Decimal>> first?
-    */
-    public Map<Integer, Vector> transpose(){  //whatever happens, return an actual matrix
-        //Vector subjectVector
+    public void replaceElementAtCoordinates(Integer columnCoord, Integer rowCoord, Decimal value){
+        if(matrix.containsKey(columnCoord) && matrix.get(columnCoord)?.getElementAtPosition(rowCoord) != null){
+            matrix.get(columnCoord).replaceElementAtPosition(rowCoord, value);
+        }
+    }
+    public Matrix transpose(){
         Map<Integer, Vector> transposedMatrixResult = new Map<Integer, Vector>();
-        //instead of looping through, take sample vector
-        Vector sampleColumnVector = matrix.get(0);
-        for(Integer i = 0; i < sampleColumnVector.getSize(); i++){
-
-            for(Integer columnCoordinate : matrix.keySet()){
+        for(Integer columnCoordinate : matrix.keySet()){
+            Vector subjectVector = matrix.get(columnCoordinate);
+            for(Integer i = 0; i < subjectVector.getSize(); i++){
                 if(transposedMatrixResult.get(i) == null){
-                    transposedMatrixResult.put(i, new Vector(new List<Decimal>{sampleColumnVector.getElementAtPosition(i)}));
+                    if(subjectVector.getElementAtPosition(columnCoordinate) != null){
+                        transposedMatrixResult.put(i, new Vector(new List<Decimal>{subjectVector.getElementAtPosition(i)}));
+                    }
                 }else{
-                    /* Nah, you're not gonna brute force this
-                    Vector subjectVector = transposedMatrixResult.get(i);
-                    subjectVector.populateElementAtPosition(columnCoordinate, subjectVector.getElementAtPosition(i));
-                    transposedMatrixResult.put(i, subjectVector);
-                    */
+                    transposedMatrixResult.get(i).populateElementAtPosition(columnCoordinate, subjectVector.getElementAtPosition(i));
                 }
             }
-
         }
-        /*
-        for(Integer columnCoord : matrix.keySet()){ //becomes the number of elements in each vector
-            Vector newRowVector = new Vector();
-            Vector columnVector = matrix.get(columnCoord);
-            for(Integer i = 0; i < columnVector.getSize(); i++){ //becomes the number of columns
-                
-                newRowVector.populateElementAtPosition(i, columnVector.getElementAtPosition(i));
-            }
-        }*/
-        return transposedMatrixResult;
+        return new Matrix(transposedMatrixResult);
     }
     private Boolean isSubjectVectorSizeValid(Vector subjectVector){
         return subjectVector.getSize() == defaultVectorSize;
